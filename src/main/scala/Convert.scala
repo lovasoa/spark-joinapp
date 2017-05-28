@@ -12,11 +12,16 @@ class Converter(spark: SparkSession, folderName: String) {
     .csv(inputFile)
   }
 
+  def read(tableName: String) {
+    TPCHTables.byName.get(tableName) match {
+      case None => None
+      case Some(table) => read(table)
+    }
+  }
+
   def convert(table: Table) = {
     val outputFile = baseName(table) ++ ".parquet"
-
     println("Converting " ++ table.name ++ " to " ++ outputFile)
-
     try {
       read(table)
       .write
