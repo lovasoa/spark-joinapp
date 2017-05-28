@@ -79,28 +79,31 @@ case class Supplier(
   s_phone: String,
   s_acctbal: Double,
   s_comment: String)
-  
+
 
 case class Table(
     name: String,
     structure: types.StructType)
 
 object TPCHTables {
-  def all = 
-    Table("customer", toStructType[Customer]) ::
-    Table("nation", toStructType[Nation]) ::
-    Table("lineitem", toStructType[Lineitem]) ::
-    Table("orders", toStructType[Order]) ::
-    Table("part", toStructType[Part]) ::
-    Table("partsupp", toStructType[Partsupp]) ::
-    Table("region", toStructType[Region]) ::
-    Table("supplier", toStructType[Supplier]) :: Nil
+  val byName = Map(
+    "customer" -> toStructType[Customer],
+    "nation" -> toStructType[Nation],
+    "lineitem" -> toStructType[Lineitem],
+    "orders" -> toStructType[Order],
+    "part" -> toStructType[Part],
+    "partsupp" -> toStructType[Partsupp],
+    "region" -> toStructType[Region],
+    "supplier" -> toStructType[Supplier]
+  ).map({case (name, struct) => (name, Table(name, struct))})
 
-    def toStructType[caseClass: universe.TypeTag] = {
-        catalyst.ScalaReflection
-            .schemaFor[caseClass]
-            .dataType
-            .asInstanceOf[types.StructType]
-    }
+  def names = byName.keys
+  def tables = byName.values
+
+  def toStructType[caseClass: universe.TypeTag] = {
+    catalyst.ScalaReflection
+    .schemaFor[caseClass]
+    .dataType
+    .asInstanceOf[types.StructType]
+  }
 }
-
