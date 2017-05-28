@@ -1,4 +1,48 @@
-// Query Q3 from TPC-H
+import org.apache.spark.sql._
+import Main.spark.implicits._
+
+class Q3() {
+  /**
+    Implement a truncated query Q3 from TPCH
+    (with only 1 join and to aggregation)
+  **/
+  val queryType = "Simple"
+
+  def registerView(tableName: String) = {
+    Converter.read(tableName).createOrReplaceTempView(tableName)
+  }
+
+  def prepare() = {
+    List("orders", "lineitem").foreach(registerView)
+  }
+
+  def query() : DataFrame = {
+    // Run the query and save the result to a parquet file in HDFS
+    Main.spark.sql("""
+      SELECT
+          l_orderkey,
+          l_extendedprice
+          o_orderdate
+      FROM
+          orders,
+          lineitem
+      WHERE
+          o_custkey % 5 = 0 -- selectivity: 1/5
+          AND l_orderkey = o_orderkey
+          AND o_orderdate < '1995-03-15' -- selectivity: 0.48
+          AND l_shipdate > '1995-03-15' -- selectivity: 0.54
+    """)
+  }
+
+  def run() = {
+    println("query type: " ++ queryType)
+    prepare()
+    val result = query()
+    result.explain()
+    result.write.parquet("Q3-result.parquet")
+    result
+  }
+}
 
 /**
 ## The real Q3
@@ -40,32 +84,3 @@ WHERE
     AND o_orderdate < '1995-03-15' -- selectivity: 0.48
     AND l_shipdate > '1995-03-15' -- selectivity: 0.54
 **/
-
-import Main.spark.implicits._
-
-object Q3 {
-  def registerView(tableName: String) = {
-    Converter.read(tableName).createOrReplaceTempView(tableName)
-  }
-
-  def query() : DataFrame {
-    List("orders", "lineitem").foreach(registerView)
-
-    val result = Main.spark.sql("""
-      SELECT
-          l_orderkey,
-          l_extendedprice
-          o_orderdate
-      FROM
-          orders,
-          lineitem
-      WHERE
-          o_custkey % 5 = 0 -- selectivity: 1/5
-          AND l_orderkey = o_orderkey
-          AND o_orderdate < '1995-03-15' -- selectivity: 0.48
-          AND l_shipdate > '1995-03-15' -- selectivity: 0.54
-    """)
-    result.explain()
-    result
-  }
-}

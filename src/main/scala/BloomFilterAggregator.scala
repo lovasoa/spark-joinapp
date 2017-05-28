@@ -3,9 +3,10 @@ import org.apache.spark.sql.Encoder
 import org.apache.spark.sql.Encoders
 import com.github.lovasoa.bloomfilter.BloomFilter
 
-object BloomFilterAggregator extends Aggregator[Object, BloomFilter, BloomFilter] {
+class BloomFilterAggregator(elements:Int, bits:Int)
+  extends Aggregator[Object, BloomFilter, BloomFilter] {
   // A zero value for this aggregation. Should satisfy the property that any b + zero = b
-  def zero: BloomFilter = new BloomFilter(1000000)
+  def zero: BloomFilter = new BloomFilter(elements, bits)
   // Combine two values to produce a new value. For performance, the function may modify `buffer`
   // and return it instead of constructing a new object
   def reduce(buffer: BloomFilter, value: Object): BloomFilter = {
