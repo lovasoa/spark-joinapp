@@ -1,10 +1,10 @@
 import org.apache.spark.sql._
+import Main.{spark, folderName}
 
-class Converter(spark: SparkSession, folderName: String) {
-
+object Converter {
   def baseName(table: Table) = folderName ++ table.name
 
-  def read(table: Table) = {
+  def read(table: Table) : DataFrame = {
     val inputFile = baseName(table) ++ ".tbl"
     spark.read
     .schema(table.structure)
@@ -12,9 +12,9 @@ class Converter(spark: SparkSession, folderName: String) {
     .csv(inputFile)
   }
 
-  def read(tableName: String) {
+  def read(tableName: String) : DataFrame = {
     TPCHTables.byName.get(tableName) match {
-      case None => None
+      case None => throw new Exception("No such table: " ++ tableName)
       case Some(table) => read(table)
     }
   }

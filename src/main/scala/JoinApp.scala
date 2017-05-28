@@ -6,19 +6,11 @@ object Main {
       .master("yarn")
       .appName("JoinApp")
       .getOrCreate()
-  import spark.implicits._
-
   val sc = SparkContext.getOrCreate()
+  val folderName = "dataset/" // Folder where the data tables are
+
 
   def main(args: Array[String]) {
     sc.setLogLevel("INFO")
-
-    val converter = new Converter(spark, "dataset/")
-    val List(orders, lineitems) =
-      List("orders", "lineitems")
-        .map(TPCHTables.byName.get).flatten
-        .map(converter.read)
-
-    orders.join(lineitems, $"o_orderkey" === $"l_orderkey")
   }
 }
