@@ -11,3 +11,5 @@ libraryDependencies ++= Seq(
     "org.apache.spark" %% "spark-sql" % "2.1.0" % "provided",
     "com.github.lovasoa" % "BloomFilter" % "2.2.1"
 )
+
+assemblyOutputPath in assembly := file("target/joinapp.jar")
