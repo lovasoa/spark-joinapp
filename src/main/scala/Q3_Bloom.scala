@@ -42,13 +42,13 @@ class Q3_Bloom extends Q3 {
     Main.spark.sql("""
       SELECT
           o_orderkey,
-          l_extendedprice
+          l_extendedprice,
           o_orderdate
       FROM
           filteredOrders,
           lineitem
       WHERE
-          AND l_orderkey = o_orderkey
+          l_orderkey = o_orderkey
           AND checkInFilter(l_orderkey)
           AND l_shipdate > '1995-03-15' -- selectivity: 0.54
     """)
