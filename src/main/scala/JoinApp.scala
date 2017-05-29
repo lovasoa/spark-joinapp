@@ -16,7 +16,6 @@ object Main {
   val spark = SparkSession.builder().getOrCreate()
 
   val logger = Logger.getLogger(Main.getClass)
-  BasicConfigurator.configure()
 
   def main(args: Array[String]) {
     args.lift(0) match {
