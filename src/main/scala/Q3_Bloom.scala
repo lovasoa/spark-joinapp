@@ -1,5 +1,6 @@
 import org.apache.spark.sql._
 import Main.spark.implicits._
+import Main.{spark, sc, logger}
 
 class Q3_Bloom extends Q3 {
   /**
@@ -10,7 +11,7 @@ class Q3_Bloom extends Q3 {
   override val queryType = "BloomFiltered"
 
   override def query() : DataFrame = {
-    val filteredOrders = Main.spark.sql("""
+    val filteredOrders = spark.sql("""
       SELECT
           o_orderkey,
           o_orderdate
@@ -35,11 +36,11 @@ class Q3_Bloom extends Q3 {
         .collect()
 
     // Broadcast it to all node
-    val broadcastedFilter = Main.sc.broadcast(bloomFilter)
+    val broadcastedFilter = sc.broadcast(bloomFilter)
 
     // Filter lineitem using our bloom filter
-    Main.spark.udf.register("checkInFilter", (id: Long) => broadcastedFilter.value.contains(id))
-    Main.spark.sql("""
+    spark.udf.register("checkInFilter", (id: Long) => broadcastedFilter.value.contains(id))
+    spark.sql("""
       SELECT
           o_orderkey,
           l_extendedprice,

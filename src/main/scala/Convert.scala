@@ -1,44 +1,40 @@
 import org.apache.spark.sql._
-import Main.{spark, folderName}
+import Main.{spark, logger}
 
 object Converter {
-  def baseName(table: Table) = folderName ++ table.name
+  def tblFileName(tableName:String) = "file:///tmp/dataset/" ++ tableName ++ ".tbl"
+  def parquetFileName(tableName:String) = tableName ++ ".parquet"
 
-  def read(table: Table) : DataFrame = {
-    val inputFile = baseName(table) ++ ".tbl"
+  def readFile(table: Table): DataFrame = {
     spark.read
     .schema(table.structure)
     .option("delimiter", "|")
-    .csv(inputFile)
+    .csv(tblFileName(table.name))
   }
 
   def read(tableName: String) : DataFrame = {
     TPCHTables.byName.get(tableName) match {
       case None => throw new Exception("No such table: " ++ tableName)
-      case Some(table) => read(table)
+      case Some(table) => readFile(table)
     }
   }
 
-  def convert(table: Table) = {
-    val outputFile = baseName(table) ++ ".parquet"
-    println("Converting " ++ table.name ++ " to " ++ outputFile)
+  def write(df: DataFrame, tableName: String) = {
+    df.write
+      .mode(SaveMode.Overwrite)
+      .parquet(parquetFileName(tableName))
+  }
+
+  def convert(tableName: String) = {
+    logger.info(s"Converting ${tableName}...")
     try {
-      read(table)
-      .write
-      .mode("ignore")
-      .option("compression", "none")
-      .parquet(outputFile)
+      write(read(tableName), tableName)
     } catch {
       case e: AnalysisException => {
         System.err.println(
-          s"Unable to convert ${table.name}: ${e.getSimpleMessage}"
+          s"Unable to convert ${tableName}: ${e.getSimpleMessage}"
         )
       }
     }
-  }
-
-  def convertAll() = {
-    val tables = TPCHTables.tables
-    tables.foreach(convert)
   }
 }

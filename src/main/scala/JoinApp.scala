@@ -1,5 +1,6 @@
 import org.apache.spark.sql._
 import org.apache.spark.{SparkContext, SparkConf}
+import org.apache.log4j.Logger
 import com.github.lovasoa.bloomfilter.BloomFilter
 
 
@@ -14,12 +15,31 @@ object Main {
   val sc = new SparkContext(conf)
   val spark = SparkSession.builder().getOrCreate()
 
-  val folderName = "dataset/" // Folder where the data tables are
+  val logger = Logger.getLogger("Main")
 
   def main(args: Array[String]) {
+    args.lift(1) match {
+      case Some("QUERY")   => query(args.drop(2))
+      case Some("CONVERT") => convert(args.drop(2))
+      case _ => {
+        logger.error(s"Usage: ${args(0)} QUERY|CONVERT")
+        System.exit(1)
+      }
+    }
+  }
+
+  def query(args: Array[String]) {
     sc.setLogLevel("INFO")
-    val query = if (args.contains("bloom")) new Q3_Bloom else new Q3
+    val bloom = args.contains("bloom")
+    logger.info(s"QUERY bloom=$bloom")
+    val query = if (bloom) new Q3_Bloom else new Q3
     query.run()
+  }
+
+  def convert(args: Array[String]) {
+    sc.setLogLevel("OFF")
+    conf.set("spark.eventLog.enabled", "false")
+    args.foreach(Converter.convert)
   }
 
   def getMaxMemory(): Long = {

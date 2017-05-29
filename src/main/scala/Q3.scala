@@ -1,5 +1,6 @@
 import org.apache.spark.sql._
 import Main.spark.implicits._
+import Main.{spark, logger}
 
 class Q3() {
   /**
@@ -9,7 +10,8 @@ class Q3() {
   val queryType = "Simple"
 
   def registerView(tableName: String) = {
-    Converter.read(tableName).createOrReplaceTempView(tableName)
+    val file = Converter.parquetFileName(tableName)
+    spark.read.parquet(file).createOrReplaceTempView(tableName)
   }
 
   def prepare() = {
@@ -18,7 +20,7 @@ class Q3() {
 
   def query() : DataFrame = {
     // Run the query and save the result to a parquet file in HDFS
-    Main.spark.sql("""
+    spark.sql("""
       SELECT
           l_orderkey,
           l_extendedprice
@@ -36,8 +38,8 @@ class Q3() {
 
   def run() = {
     prepare()
-    println(s"query type: $queryType")
-    Main.spark.sql("""
+    logger.info(s"query type: $queryType")
+    spark.sql("""
       SELECT 'orders' AS table, COUNT(*) AS count FROM orders
       UNION
       SELECT 'lineitem' AS table, COUNT(*) AS count FROM lineitem
