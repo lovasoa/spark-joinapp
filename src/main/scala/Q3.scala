@@ -47,6 +47,7 @@ class Q3() {
     val result = query()
     result.explain()
     result.write.mode(SaveMode.Overwrite).parquet("Q3-result.parquet")
+    logger.info(s"number of elements in result set: ${result.count()}")
     result
   }
 }
