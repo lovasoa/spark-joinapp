@@ -37,7 +37,7 @@ object Main {
   }
 
   def convert(args: Array[String]) {
-    sc.setLogLevel("OFF")
+    sc.setLogLevel("ERROR")
     conf.set("spark.eventLog.enabled", "false")
     args.foreach(Converter.convert)
   }
