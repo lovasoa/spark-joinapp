@@ -19,11 +19,11 @@ object Main {
   BasicConfigurator.configure()
 
   def main(args: Array[String]) {
-    args.lift(1) match {
+    args.lift(0) match {
       case Some("QUERY")   => query(args.drop(1))
       case Some("CONVERT") => convert(args.drop(1))
       case _ => {
-        logger.error(s"Usage: ${args(0)} QUERY|CONVERT")
+        logger.error(s"Usage: QUERY|CONVERT")
         System.exit(1)
       }
     }
