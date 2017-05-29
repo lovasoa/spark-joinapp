@@ -25,11 +25,11 @@ class Q3_Bloom extends Q3 {
     // Create our bloom filter
     val count = filteredOrders.count().toInt
     val bits = bloomSize(count, 0.05).toInt
-    val bloomAggregator = new BloomFilterAggregator(count, bits)
+    val bloomAggregator = new BloomFilterAggregator[Int](count, bits)
     val bloomFilter =
       filteredOrders
         .select($"o_orderkey")
-        .as[Long]
+        .as[Int]
         .select(bloomAggregator.toColumn)
         .collect()
 
