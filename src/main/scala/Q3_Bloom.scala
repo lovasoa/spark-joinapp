@@ -25,6 +25,7 @@ class Q3_Bloom extends Q3 {
     // Create our bloom filter
     val count = filteredOrders.count().toInt
     val bits = bloomSize(count, 0.05).toInt
+    println("BloomFilter($count, $bits)")
     val bloomAggregator = new BloomFilterAggregator[Int](count, bits)
     val bloomFilter =
       filteredOrders

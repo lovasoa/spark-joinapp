@@ -35,7 +35,7 @@ class Q3() {
   }
 
   def run() = {
-    println("query type: " ++ queryType)
+    println("query type: $queryType")
     prepare()
     val result = query()
     result.explain()
