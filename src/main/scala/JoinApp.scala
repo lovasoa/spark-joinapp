@@ -12,7 +12,7 @@ object Main {
   def main(args: Array[String]) {
     sc.setLogLevel("INFO")
 
-    val query = if (args.contains("--bloom")) new Q3_Bloom else new Q3
+    val query = if (args.contains("bloom")) new Q3_Bloom else new Q3
     query.run()
   }
 
