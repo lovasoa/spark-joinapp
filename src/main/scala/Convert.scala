@@ -12,7 +12,7 @@ object Converter {
 }
 
 class Converter(folder:String) {
-  def tblFileName(tableName:String) = folder ++ tableName ++ ".tbl"
+  def tblFileName(tableName:String) = s"$folder/$tableName/.tbl"
 
   def readFile(table: Table): DataFrame = {
     spark.read
