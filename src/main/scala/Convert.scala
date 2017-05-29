@@ -30,14 +30,6 @@ class Converter(folder: String) {
 
   def convert(tableName: String) = {
     logger.info(s"Converting $tableName in $folder...")
-    try {
-      Converter.write(read(tableName), tableName)
-    } catch {
-      case e: AnalysisException => {
-        System.err.println(
-          s"Unable to convert ${tableName}: ${e.getSimpleMessage}"
-        )
-      }
-    }
+    Converter.write(read(tableName), tableName)
   }
 }

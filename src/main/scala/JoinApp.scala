@@ -1,6 +1,6 @@
 import org.apache.spark.sql._
 import org.apache.spark.{SparkContext, SparkConf}
-import org.apache.log4j.Logger
+import org.apache.log4j.{Logger, BasicConfigurator}
 import com.github.lovasoa.bloomfilter.BloomFilter
 
 
@@ -16,6 +16,7 @@ object Main {
   val spark = SparkSession.builder().getOrCreate()
 
   val logger = Logger.getLogger(Main.getClass)
+  BasicConfigurator.configure()
 
   def main(args: Array[String]) {
     args.lift(1) match {
@@ -39,7 +40,7 @@ object Main {
   def convert(args: Array[String]) {
     sc.setLogLevel("ERROR")
     conf.set("spark.eventLog.enabled", "false")
-    val converter = new Converter(args(1))
+    val converter = new Converter(args(0))
     args.drop(1).foreach(converter.convert)
   }
 
