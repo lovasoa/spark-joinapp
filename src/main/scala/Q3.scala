@@ -44,7 +44,7 @@ class Q3() {
     """).show()
     val result = query()
     result.explain()
-    result.write.parquet("Q3-result.parquet")
+    result.write.mode(SaveMode.Overwrite).parquet("Q3-result.parquet")
     result
   }
 }
