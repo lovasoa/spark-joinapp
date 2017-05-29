@@ -19,8 +19,8 @@ object Main {
 
   def main(args: Array[String]) {
     args.lift(1) match {
-      case Some("QUERY")   => query(args.drop(2))
-      case Some("CONVERT") => convert(args.drop(2))
+      case Some("QUERY")   => query(args.drop(1))
+      case Some("CONVERT") => convert(args.drop(1))
       case _ => {
         logger.error(s"Usage: ${args(0)} QUERY|CONVERT")
         System.exit(1)
