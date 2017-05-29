@@ -15,7 +15,7 @@ object Main {
   val sc = new SparkContext(conf)
   val spark = SparkSession.builder().getOrCreate()
 
-  val logger = Logger.getLogger("Main")
+  val logger = Logger.getLogger(Main.getClass)
 
   def main(args: Array[String]) {
     args.lift(1) match {
