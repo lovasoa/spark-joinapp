@@ -31,7 +31,7 @@ object Converter {
     } catch {
       case e: AnalysisException => {
         System.err.println(
-          "Unable to convert $inputFile : ${e.getSimpleMessage}"
+          s"Unable to convert $inputFile : ${e.getSimpleMessage}"
         )
       }
     }

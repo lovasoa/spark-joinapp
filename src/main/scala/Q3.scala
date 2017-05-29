@@ -35,7 +35,12 @@ class Q3() {
   }
 
   def run() = {
-    println("query type: $queryType")
+    println(s"query type: $queryType")
+    Main.spark.sql("""
+      SELECT 'orders' AS table, COUNT(*) AS count FROM orders
+      UNION
+      SELECT 'lineitem' AS table, COUNT(*) AS count FROM lineitem
+    """).show()
     prepare()
     val result = query()
     result.explain()
