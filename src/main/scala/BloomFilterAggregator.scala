@@ -6,6 +6,7 @@ import com.github.lovasoa.bloomfilter.BloomFilter
 class BloomFilterAggregator[Type](elements:Int, bits:Int)
   extends Aggregator[Type, BloomFilter, BloomFilter] {
   // A zero value for this aggregation. Should satisfy the property that any b + zero = b
+  // TODO : set spark.kryoserializer.buffer.max if bits is too large
   def zero: BloomFilter = new BloomFilter(elements, bits)
   // Combine two values to produce a new value. For performance, the function may modify `buffer`
   // and return it instead of constructing a new object
