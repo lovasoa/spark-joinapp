@@ -2,8 +2,17 @@ import org.apache.spark.sql._
 import Main.{spark, logger}
 
 object Converter {
-  def tblFileName(tableName:String) = "file:///tmp/dataset/" ++ tableName ++ ".tbl"
   def parquetFileName(tableName:String) = tableName ++ ".parquet"
+
+  def write(df: DataFrame, tableName: String) = {
+    df.write
+      .mode(SaveMode.Overwrite)
+      .parquet(parquetFileName(tableName))
+  }
+}
+
+class Converter(folder:String) {
+  def tblFileName(tableName:String) = folder ++ tableName ++ ".tbl"
 
   def readFile(table: Table): DataFrame = {
     spark.read
@@ -19,16 +28,10 @@ object Converter {
     }
   }
 
-  def write(df: DataFrame, tableName: String) = {
-    df.write
-      .mode(SaveMode.Overwrite)
-      .parquet(parquetFileName(tableName))
-  }
-
   def convert(tableName: String) = {
-    logger.info(s"Converting ${tableName}...")
+    logger.info(s"Converting $tableName in $folder...")
     try {
-      write(read(tableName), tableName)
+      Converter.write(read(tableName), tableName)
     } catch {
       case e: AnalysisException => {
         System.err.println(

@@ -39,7 +39,8 @@ object Main {
   def convert(args: Array[String]) {
     sc.setLogLevel("ERROR")
     conf.set("spark.eventLog.enabled", "false")
-    args.foreach(Converter.convert)
+    val converter = new Converter(args(1))
+    args.drop(1).foreach(converter.convert)
   }
 
   def getMaxMemory(): Long = {
