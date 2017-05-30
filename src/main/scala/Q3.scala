@@ -23,7 +23,7 @@ class Q3() {
     spark.sql("""
       SELECT
           l_orderkey,
-          l_extendedprice
+          l_extendedprice,
           o_orderdate
       FROM
           orders,
