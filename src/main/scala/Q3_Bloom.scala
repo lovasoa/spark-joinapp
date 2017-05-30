@@ -35,13 +35,6 @@ class Q3_Bloom extends Q3 {
         .select(bloomAggregator.toColumn)
         .first()
 
-    filteredOrders
-      .select($"o_orderkey")
-      .as[Int]
-      .select(bloomAggregator.toColumn)
-      .map(blf => s"BloomFilter: bytes=${blf.bitset.bytes.length} nullbytes=${blf.bitset.bytes.count(_ == 0)}")
-      .show(100, false)
-
     // Broadcast it to all node
     val broadcastedFilter = sc.broadcast(bloomFilter)
 
