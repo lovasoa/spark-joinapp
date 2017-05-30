@@ -1,8 +1,6 @@
 import org.apache.spark.sql._
 import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.log4j.{Logger, BasicConfigurator}
-import com.github.lovasoa.bloomfilter.BloomFilter
-
 
 object Main {
   val conf = new SparkConf()
@@ -29,7 +27,7 @@ object Main {
   }
 
   def query(args: Array[String]) {
-    sc.setLogLevel("INFO")
+    sc.setLogLevel("WARN")
     val bloom = args.contains("bloom")
     logger.info(s"QUERY bloom=$bloom")
     val query = if (bloom) new Q3_Bloom else new Q3
