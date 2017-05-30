@@ -1,4 +1,5 @@
 import org.apache.spark.sql._
+import org.apache.spark.sql.functions._
 import Main.spark.implicits._
 import Main.{spark, sc, logger}
 
@@ -39,7 +40,11 @@ class Q3_Bloom extends Q3 {
     val broadcastedFilter = sc.broadcast(bloomFilter)
 
     // Filter lineitem using our bloom filter
-    spark.udf.register("checkInFilter", (id: Int) => broadcastedFilter.value.contains(id))
+    val checkInFilter = udf((id: Int) => broadcastedFilter.value.contains(id))
+    spark.read.table("lineitem")
+      .filter($"l_shipdate" > "1995-03-15" && checkInFilter($"l_orderkey"))
+      .createOrReplaceTempView("filteredLineitem")
+
     spark.sql("""
       SELECT
           o_orderkey,
@@ -47,11 +52,9 @@ class Q3_Bloom extends Q3 {
           o_orderdate
       FROM
           filteredOrders,
-          lineitem
+          filteredLineitem
       WHERE
           l_orderkey = o_orderkey
-          AND checkInFilter(l_orderkey)
-          AND l_shipdate > '1995-03-15' -- selectivity: 0.54
     """)
   }
 
