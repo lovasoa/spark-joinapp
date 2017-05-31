@@ -19,7 +19,7 @@ class Q3_Bloom extends Q3 {
     filteredOrders.cache()
 
     // Getting an approximation of the number of distinct order keys
-    val cntInterval = filteredOrders.rdd.countApprox(timeout=1500, confidence=0.8)
+    val cntInterval = filteredOrders.rdd.countApprox(timeout=3000, confidence=0.8)
     val (lowCnt,highCnt) = (cntInterval.initialValue.low, cntInterval.initialValue.high)
     val count : Int = math.round((lowCnt + highCnt).toFloat / 2)
     if (highCnt - lowCnt > 100) {
