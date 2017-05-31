@@ -36,7 +36,7 @@ class Q3() {
     """)
   }
 
-  def run() = {
+  def run_debug() = {
     prepare()
     logger.info(s"query type: $queryType")
     spark.sql("""
@@ -51,6 +51,15 @@ class Q3() {
     logger.info(s"number of elements in result set: ${result.count()}")
     result
   }
+
+  def run() = {
+    prepare()
+    logger.info(s"query type: $queryType")
+    val result = query()
+    result.write.mode(SaveMode.Overwrite).parquet("Q3-result.parquet")
+    result
+  }
+
 }
 
 /**

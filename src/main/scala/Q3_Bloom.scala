@@ -12,17 +12,11 @@ class Q3_Bloom extends Q3 {
   override val queryType = "BloomFiltered"
 
   override def query() : DataFrame = {
-    val filteredOrders = spark.sql("""
-      SELECT
-          o_orderkey,
-          o_orderdate
-      FROM
-          orders
-      WHERE
-          o_custkey % 5 = 0 -- selectivity: 1/5
-          AND o_orderdate < '1995-03-15' -- selectivity: 0.48
-    """)
-    filteredOrders.createOrReplaceTempView("filteredOrders")
+    val filteredOrders =
+      spark.read.table("orders")
+        .filter($"o_custkey" % 5 === 0 && $"o_orderdate" < "1995-03-15")
+        .select($"o_orderkey", $"o_orderdate")
+    filteredOrders.cache()
 
     // Create our bloom filter
     val count = filteredOrders.count().toInt
@@ -41,21 +35,11 @@ class Q3_Bloom extends Q3 {
 
     // Filter lineitem using our bloom filter
     val checkInFilter = udf((id: Int) => broadcastedFilter.value.contains(id))
+
     spark.read.table("lineitem")
       .filter($"l_shipdate" > "1995-03-15" && checkInFilter($"l_orderkey"))
-      .createOrReplaceTempView("filteredLineitem")
-
-    spark.sql("""
-      SELECT
-          o_orderkey,
-          l_extendedprice,
-          o_orderdate
-      FROM
-          filteredOrders,
-          filteredLineitem
-      WHERE
-          l_orderkey = o_orderkey
-    """)
+      .join(filteredOrders, $"l_orderkey" === $"o_orderkey")
+      .select($"o_orderkey", $"l_extendedprice", $"o_orderdate")
   }
 
   def bloomSize(elements:Long, errorRate:Double) : Long = {
