@@ -22,11 +22,11 @@ class Q3_Bloom extends Q3 {
     val cntInterval = filteredOrders.rdd.countApprox(timeout=1000, confidence=0.8)
     val (lowCnt,highCnt) = (cntInterval.initialValue.low, cntInterval.initialValue.high)
     val count : Int = math.round((lowCnt + highCnt).toFloat / 2)
-    println(s"Count interval [$lowCnt, $highCnt]. Choosing count=$count")
+    logger.info(s"Count interval: [$lowCnt, $highCnt]. Choosing count=$count")
 
     // Create our bloom filter
     val bits = bloomSize(count, 0.05).toInt
-    println(s"BloomFilter($count, $bits)")
+    logger.info(s"BloomFilter($count, $bits)")
     val bloomAggregator = new BloomFilterAggregator(count, bits)
     val bloomFilter : BloomFilter =
       filteredOrders
