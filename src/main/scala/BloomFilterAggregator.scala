@@ -3,7 +3,7 @@ import org.apache.spark.sql.Encoder
 import org.apache.spark.sql.Encoders
 import scala.util.Random
 
-class BloomFilterAggregator(elements:Int, bits:Int)
+class BloomFilterAggregator(elements:Long, bits:Long)
   extends Aggregator[Int, BitSetView, BloomFilter] {
 
   private val numHashFunctions : Int =

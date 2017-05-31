@@ -1,3 +1,5 @@
+import Main.logger
+
 case class BitSetView(bytes: Array[Byte]) {
   /**
     Access individual bits of a byte array
@@ -35,8 +37,13 @@ case class BitSetView(bytes: Array[Byte]) {
 
 object BitSetView {
     // Create a new BitSetView
-    def ofSize(sizeInBits: Int) : BitSetView = {
-      val sizeInBytes = sizeInBits / 8
+    def ofSize(requiredSizeInBits: Long) : BitSetView = {
+      val requiredSizeInBytes = requiredSizeInBits / 8
+      if (requiredSizeInBytes > Int.MaxValue) {
+        logger.warn(s"Required BitSet size $requiredSizeInBytes bytes" ++
+          s"larger than max integer size ${Int.MaxValue}. Using Int.MaxValue")
+      }
+      val sizeInBytes = math.min(requiredSizeInBytes, Int.MaxValue).toInt
       val bytes = Array.ofDim[Byte](sizeInBytes)
       new BitSetView(bytes)
     }

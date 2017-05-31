@@ -27,7 +27,7 @@ class Q3_Bloom extends Q3 {
     }
 
     // Create our bloom filter
-    val bits = bloomSize(count, 0.05).toInt
+    val bits = bloomSizeInBits(elements=count, errorRate=0.1)
     logger.info(s"BloomFilter($count, $bits)")
     val bloomAggregator = new BloomFilterAggregator(count, bits)
     val bloomFilter : BloomFilter =
@@ -49,7 +49,7 @@ class Q3_Bloom extends Q3 {
       .select($"o_orderkey", $"l_extendedprice", $"o_orderdate")
   }
 
-  def bloomSize(elements:Long, errorRate:Double) : Long = {
+  def bloomSizeInBits(elements:Long, errorRate:Double) : Long = {
     // Compute the desired size of the bloom filter
     // Classic Bloom filters use 1.44 * log2(1/ϵ) bits of space per inserted key
     val requiredBits = math.round(elements * 1.44 * math.log(1/errorRate)/math.log(2))
