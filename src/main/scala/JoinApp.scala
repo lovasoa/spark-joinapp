@@ -29,9 +29,10 @@ object Main {
   def query(args: Array[String]) {
     sc.setLogLevel("WARN")
     val bloom = args.contains("bloom")
+    val is_debug = args.contains("debug")
     logger.info(s"QUERY bloom=$bloom")
     val query = if (bloom) new Q3_Bloom else new Q3_SQL
-    query.run()
+    query.run(debug = is_debug)
   }
 
   def convert(args: Array[String]) {

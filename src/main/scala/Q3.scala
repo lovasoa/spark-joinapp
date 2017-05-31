@@ -21,26 +21,22 @@ abstract class Q3() {
   // Concrete Q3 must override this
   def query() : DataFrame
 
-  def run_debug() = {
+  def run(debug:Boolean) = {
     prepare()
-    logger.info(s"query type: $queryType")
-    spark.sql("""
-      SELECT 'orders' AS table, COUNT(*) AS count FROM orders
-      UNION
-      SELECT 'lineitem' AS table, COUNT(*) AS count FROM lineitem
-    """).show()
     val result = query()
-    result.explain()
-    result.show()
-    result.write.mode(SaveMode.Overwrite).parquet("Q3-result.parquet")
-    logger.info(s"number of elements in result set: ${result.count()}")
-    result
-  }
 
-  def run() = {
-    prepare()
-    logger.info(s"query type: $queryType")
-    val result = query()
+    if (debug) {
+      logger.info(s"query type: $queryType")
+      spark.sql("""
+        SELECT 'orders' AS table, COUNT(*) AS count FROM orders
+        UNION
+        SELECT 'lineitem' AS table, COUNT(*) AS count FROM lineitem
+      """).show()
+      result.explain()
+      result.show()
+      logger.info(s"number of elements in result set: ${result.count()}")
+    }
+
     result.write.mode(SaveMode.Overwrite).parquet("Q3-result.parquet")
     result
   }
