@@ -51,6 +51,12 @@ class Q3_Bloom extends Q3 {
     // Compute the desired size of the bloom filter
     // Classic Bloom filters use 1.44 * log2(1/ϵ) bits of space per inserted key
     val requiredBits = math.round(elements * 1.44 * math.log(1/errorRate)/math.log(2))
-    math.min(requiredBits, Main.getMaxMemory * 8 / 2) // Don’t use more memory than available
+    val maxMemoryFraction = 0.25 // Don’t use more memory than this percentage of total available memory
+    val maxSizeInBits = (Main.getMaxMemory * 8 * maxMemoryFraction).toLong
+    if (requiredBits > maxSizeInBits) {
+      logger.warn("Reached maximum memory size for the bloom filter." ++
+        s"Wanted to use $requiredBits bits, using only $maxSizeInBits")
+    }
+    math.min(requiredBits, maxSizeInBits)
   }
 }
