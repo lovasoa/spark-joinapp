@@ -2,7 +2,7 @@ import org.apache.spark.sql._
 import Main.spark.implicits._
 import Main.{spark, logger}
 
-class Q3() {
+abstract class Q3() {
   /**
     Implement a truncated query Q3 from TPCH
     (with only 1 join and to aggregation)
@@ -18,23 +18,8 @@ class Q3() {
     List("orders", "lineitem").foreach(registerView)
   }
 
-  def query() : DataFrame = {
-    // Run the query and save the result to a parquet file in HDFS
-    spark.sql("""
-      SELECT
-          l_orderkey,
-          l_extendedprice,
-          o_orderdate
-      FROM
-          orders,
-          lineitem
-      WHERE
-          o_custkey % 5 = 0 -- selectivity: 1/5
-          AND l_orderkey = o_orderkey
-          AND o_orderdate < '1995-03-15' -- selectivity: 0.48
-          AND l_shipdate > '1995-03-15' -- selectivity: 0.54
-    """)
-  }
+  // Concrete Q3 must override this
+  def query() : DataFrame
 
   def run_debug() = {
     prepare()

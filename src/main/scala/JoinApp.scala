@@ -30,7 +30,7 @@ object Main {
     sc.setLogLevel("WARN")
     val bloom = args.contains("bloom")
     logger.info(s"QUERY bloom=$bloom")
-    val query = if (bloom) new Q3_Bloom else new Q3
+    val query = if (bloom) new Q3_Bloom else new Q3_SQL
     query.run()
   }
 
