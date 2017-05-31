@@ -18,8 +18,13 @@ class Q3_Bloom extends Q3 {
         .select($"o_orderkey", $"o_orderdate")
     filteredOrders.cache()
 
+    // Getting an approximation of the number of distinct order keys
+    val cntInterval = filteredOrders.rdd.countApprox(timeout=1000, confidence=0.8)
+    val (lowCnt,highCnt) = (cntInterval.initialValue.low, cntInterval.initialValue.high)
+    val count : Int = math.round((lowCnt + highCnt).toFloat / 2)
+    println(s"Count interval [$lowCnt, $highCnt]. Choosing count=$count")
+
     // Create our bloom filter
-    val count = filteredOrders.count().toInt
     val bits = bloomSize(count, 0.05).toInt
     println(s"BloomFilter($count, $bits)")
     val bloomAggregator = new BloomFilterAggregator(count, bits)
