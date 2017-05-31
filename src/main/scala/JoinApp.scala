@@ -8,7 +8,6 @@ object Main {
       .setAppName("JoinApp")
   conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
   conf.set("spark.eventLog.enabled", "true")
-  conf.registerKryoClasses(Array(classOf[BloomFilter]))
 
   val sc = new SparkContext(conf)
   val spark = SparkSession.builder().getOrCreate()
