@@ -23,11 +23,11 @@ abstract class Q3() {
   // Concrete Q3 must override this
   def query() : DataFrame
 
-  def run(debug:Boolean) = {
+  def run() = {
     prepare()
     val result = query()
 
-    if (debug) {
+    if (Main.is_debug) {
       logger.info(s"query type: $queryType")
       spark.sql("""
         SELECT 'orders' AS table, COUNT(*) AS count FROM orders

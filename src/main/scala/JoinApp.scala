@@ -6,6 +6,7 @@ object Main {
   var spark : SparkSession = null
   def sc = spark.sparkContext
   val logger = Logger.getLogger(Main.getClass)
+  var is_debug = false
 
   def main(args: Array[String]) {
     spark = SparkSession.builder()
@@ -13,6 +14,8 @@ object Main {
       .appName("JoinApp " ++ args.mkString(" "))
       .config("spark.eventLog.enabled", "true")
       .getOrCreate()
+
+    is_debug = args.contains("debug")
 
     args.lift(0) match {
       case Some("QUERY")   => query(args.drop(1))
@@ -27,10 +30,9 @@ object Main {
   def query(args: Array[String]) {
     spark.sparkContext.setLogLevel("WARN")
     val bloom = args.contains("bloom")
-    val is_debug = args.contains("debug")
     logger.info(s"QUERY bloom=$bloom")
     val query = if (bloom) new Q3_Bloom else new Q3_SQL
-    query.run(debug = is_debug)
+    query.run()
   }
 
   def convert(args: Array[String]) {

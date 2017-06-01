@@ -45,6 +45,12 @@ class Q3_Bloom extends Q3 {
     // Filter lineitem using our bloom filter
     val checkInFilter = udf((id: Int) => broadcastedFilter.value.contains(id))
 
+    if (Main.is_debug) {
+      println(s"""Testing bloom filter:""")
+      println(s""" Total: ${spark.read.table("lineitem").count()}""")
+      println(s""" In Bloom Filter: ${spark.read.table("lineitem").filter(checkInFilter($"l_orderkey")).count()}""")
+    }
+
     spark.read.table("lineitem")
       .filter($"l_shipdate" > "1995-03-15" && checkInFilter($"l_orderkey"))
       .join(filteredOrders, $"l_orderkey" === $"o_orderkey")
