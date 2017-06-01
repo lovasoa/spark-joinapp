@@ -8,6 +8,8 @@ case class BitSetView(bytes: Array[Byte]) {
     i & 7  == i % 8 (the index of the desired bit inside our byte)
   **/
 
+  def size() : Int = bytes.size * 8
+
   // Get the bit at index i
   def get(i: Int) : Boolean =
     (bytes(i >> 3) & (1 << (i & 7))) != 0

@@ -17,7 +17,7 @@ class BloomFilterAggregator(elements:Long, bits:Long)
   // and return it instead of constructing a new object
   def reduce(bitset: BitSetView, value: Int): BitSetView = {
     val prng = new Random(value)
-    val maxIdx = bitset.bytes.length
+    val maxIdx = bitset.size
     for (i <- 1 to numHashFunctions) bitset.set(prng.nextInt(maxIdx))
     bitset
   }
@@ -48,7 +48,7 @@ object BloomFilter {
 case class BloomFilter(numHashFunctions: Int, bitset: BitSetView) {
   def contains(i: Int) :  Boolean = {
     val prng = new Random(i)
-    val maxIdx = bitset.bytes.length
+    val maxIdx = bitset.size
     (1 to numHashFunctions).forall(x => bitset.get(prng.nextInt(maxIdx)))
   }
 }
