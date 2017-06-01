@@ -36,6 +36,15 @@ class BloomFilterAggregator(elements:Long, bits:Long)
   def outputEncoder: Encoder[BloomFilter] = Encoders.product[BloomFilter]
 }
 
+object BloomFilter {
+    val prng = new Random(0)
+    @inline def hashes(numHashFunctions:Int, maxIdx:Int, value:Int) : Iterator[Int] = {
+      prng.setSeed(value)
+      for (i <- Iterator.range(0, numHashFunctions))
+        yield prng.nextInt(maxIdx)
+    }
+}
+
 case class BloomFilter(numHashFunctions: Int, bitset: BitSetView) {
   def contains(i: Int) :  Boolean = {
     val prng = new Random(i)
