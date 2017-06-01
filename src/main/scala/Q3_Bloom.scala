@@ -52,8 +52,19 @@ class Q3_Bloom extends Q3 {
       logger.debug(s""" Total: ${lineitem.count()}""")
       logger.debug(s""" In Bloom Filter: ${lineitem.filter(checkInFilter($"l_orderkey")).count()}""")
 
-      lineitem.select($"l_orderkey")
+      val bloomHashes = udf((id: Int) =>
+        BloomFilter.hashes(
+          bloomFilter.numHashFunctions,
+          bloomFilter.bitset.bytes.length,
+          id
+        ).map(i => i.toString)
+        .mkString(" ")
+      )
+
+      val lines = lineitem.select($"l_orderkey")
+          .distinct()
           .withColumn("inFilter", checkInFilter($"l_orderkey"))
+          .withColumn("hashes", bloomHashes($"l_orderkey"))
           .show()
     }
 
