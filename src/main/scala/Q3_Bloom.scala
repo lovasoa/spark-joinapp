@@ -28,7 +28,7 @@ class Q3_Bloom extends Q3 {
     val count : Int = cntPartial.initialValue.mean.toInt
 
     // Create our bloom filter
-    val bits = bloomSizeInBits(elements=count, errorRate=0.1)
+    val bits = bloomSizeInBits(elements=count, errorRate=0.05)
     logger.info(s"BloomFilter($count elements, $bits bits)")
     val bloomAggregator = new BloomFilterAggregator(count, bits)
     val bloomFilter : BloomFilter =
@@ -44,10 +44,17 @@ class Q3_Bloom extends Q3 {
     // Filter lineitem using our bloom filter
     val checkInFilter = udf((id: Int) => broadcastedFilter.value.contains(id))
 
+
+    val lineitem = spark.read.table("lineitem").cache()
+
     if (Main.is_debug) {
       logger.debug(s"""Testing bloom filter:""")
-      logger.debug(s""" Total: ${spark.read.table("lineitem").count()}""")
-      logger.debug(s""" In Bloom Filter: ${spark.read.table("lineitem").filter(checkInFilter($"l_orderkey")).count()}""")
+      logger.debug(s""" Total: ${lineitem.count()}""")
+      logger.debug(s""" In Bloom Filter: ${lineitem.filter(checkInFilter($"l_orderkey")).count()}""")
+
+      lineitem.select($"l_orderkey")
+          .withColumn("inFilter", checkInFilter($"l_orderkey"))
+          .show()
     }
 
     spark.read.table("lineitem")
