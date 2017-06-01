@@ -1,8 +1,10 @@
 import org.apache.spark.sql._
-import Main.spark.implicits._
 import Main.{spark, logger}
 
 abstract class Q3() {
+  val cspark = spark
+  import cspark.implicits._
+
   /**
     Implement a truncated query Q3 from TPCH
     (with only 1 join and to aggregation)

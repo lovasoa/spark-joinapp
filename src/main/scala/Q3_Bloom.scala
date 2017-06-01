@@ -1,9 +1,10 @@
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
-import Main.spark.implicits._
-import Main.{spark, sc, logger}
+import Main.{spark, logger, sc}
 
 class Q3_Bloom extends Q3 {
+  import cspark.implicits._
+
   /**
     Implement a truncated query Q3 from TPCH
     Using a prefiltering with a bloom filter
@@ -57,8 +58,10 @@ class Q3_Bloom extends Q3 {
     val maxMemoryFraction = 0.25 // Don’t use more memory than this percentage of total available memory
     val maxSizeInBits = (Main.getMaxMemory * 8 * maxMemoryFraction).toLong
     if (requiredBits > maxSizeInBits) {
-      logger.warn("Reached maximum memory size for the bloom filter." ++
-        s"Wanted to use $requiredBits bits, using only $maxSizeInBits")
+      logger.warn(s"""
+        |Reached maximum memory size for the bloom filter." ++
+        |Wanted to use $requiredBits bits, using only $maxSizeInBits
+        |""".stripMargin.trim)
     }
     math.min(requiredBits, maxSizeInBits)
   }
