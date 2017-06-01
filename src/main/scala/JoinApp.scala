@@ -1,6 +1,6 @@
 import org.apache.spark.sql._
 import org.apache.spark.{SparkContext, SparkConf}
-import org.apache.log4j.{Logger, BasicConfigurator}
+import org.apache.log4j.{Logger, BasicConfigurator, Level}
 
 object Main {
   var spark : SparkSession = null
@@ -15,7 +15,9 @@ object Main {
       .config("spark.eventLog.enabled", "true")
       .getOrCreate()
 
+    spark.sparkContext.setLogLevel("WARN")
     is_debug = args.contains("debug")
+    logger.setLevel(if (is_debug) Level.DEBUG else Level.WARN)
 
     args.lift(0) match {
       case Some("QUERY")   => query(args.drop(1))
@@ -28,7 +30,6 @@ object Main {
   }
 
   def query(args: Array[String]) {
-    spark.sparkContext.setLogLevel("WARN")
     val bloom = args.contains("bloom")
     logger.info(s"QUERY bloom=$bloom")
     val query = if (bloom) new Q3_Bloom else new Q3_SQL
@@ -36,7 +37,6 @@ object Main {
   }
 
   def convert(args: Array[String]) {
-    spark.sparkContext.setLogLevel("ERROR")
     spark.conf.set("spark.eventLog.enabled", "false")
     val converter = new Converter(args(0))
     args.drop(1).foreach(converter.convert)
