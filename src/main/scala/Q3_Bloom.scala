@@ -65,7 +65,7 @@ class Q3_Bloom extends Q3 {
           .distinct()
           .withColumn("inFilter", checkInFilter($"l_orderkey"))
           .withColumn("hashes", bloomHashes($"l_orderkey"))
-          .show()
+          .show(numRows=100, truncate=false)
     }
 
     spark.read.table("lineitem")
