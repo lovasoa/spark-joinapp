@@ -45,7 +45,7 @@ class Q3_Bloom extends Q3 {
     val checkInFilter = udf((id: Int) => broadcastedFilter.value.contains(id))
 
 
-    val lineitem = spark.read.table("lineitem").cache()
+    val lineitem = spark.read.table("lineitem")
 
     if (Main.is_debug) {
       logger.debug(s"""Testing bloom filter:""")
