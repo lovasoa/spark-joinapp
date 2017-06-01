@@ -55,7 +55,7 @@ class Q3_Bloom extends Q3 {
       val bloomHashes = udf((id: Int) =>
         BloomFilter.hashes(
           bloomFilter.numHashFunctions,
-          bloomFilter.bitset.bytes.length,
+          bloomFilter.bitset.size,
           id
         ).map(i => i.toString)
         .mkString(" ")
