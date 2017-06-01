@@ -17,7 +17,7 @@ object Main {
 
     spark.sparkContext.setLogLevel("WARN")
     is_debug = args.contains("debug")
-    logger.setLevel(if (is_debug) Level.DEBUG else Level.WARN)
+    logger.setLevel(if (is_debug) Level.DEBUG else Level.INFO)
 
     args.lift(0) match {
       case Some("QUERY")   => query(args.drop(1))
