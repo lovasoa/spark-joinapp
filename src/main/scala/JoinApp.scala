@@ -18,6 +18,8 @@ object Main {
     spark.sparkContext.setLogLevel("WARN")
     is_debug = args.contains("debug")
     logger.setLevel(if (is_debug) Level.DEBUG else Level.INFO)
+    // Display the configuration
+    spark.conf.getAll.foreach(x => println(s"${x._1}: ${x._2}"))
 
     args.lift(0) match {
       case Some("QUERY")   => query(args.drop(1))
