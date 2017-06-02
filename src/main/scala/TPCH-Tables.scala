@@ -82,9 +82,7 @@ case class Supplier(
   s_comment: String)
 
 
-case class Table(
-    name: String,
-    structure: StructType)
+case class Table(name: String, structure: StructType)
 
 object TPCHTables {
   val byName = Map(
