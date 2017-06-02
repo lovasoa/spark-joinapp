@@ -68,12 +68,13 @@ class Q3_Bloom extends Q3 {
     val requiredBits = math.round(elements * 1.44 * math.log(1/errorRate)/math.log(2))
     val maxMemoryFraction = 0.25 // Don’t use more memory than this percentage of total available memory
     val maxSizeInBits = (Main.getMaxMemory * 8 * maxMemoryFraction).toLong
+    val minSizeInBits = 8 // Never create a filter smaller than one byte
     if (requiredBits > maxSizeInBits) {
       logger.warn(s"""
         |Reached maximum memory size for the bloom filter." ++
         |Wanted to use $requiredBits bits, using only $maxSizeInBits
         |""".stripMargin.trim)
     }
-    math.min(requiredBits, maxSizeInBits)
+    math.max(minSizeInBits, math.min(requiredBits, maxSizeInBits))
   }
 }
