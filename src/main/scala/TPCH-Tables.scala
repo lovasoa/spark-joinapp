@@ -1,4 +1,5 @@
 import org.apache.spark.sql._
+import org.apache.spark.sql.types._
 import scala.reflect.runtime.universe
 
 // Courtesy of https://github.com/ssavvides/tpch-spark/
@@ -83,7 +84,7 @@ case class Supplier(
 
 case class Table(
     name: String,
-    structure: types.StructType)
+    structure: StructType)
 
 object TPCHTables {
   val byName = Map(
@@ -104,6 +105,6 @@ object TPCHTables {
     catalyst.ScalaReflection
     .schemaFor[caseClass]
     .dataType
-    .asInstanceOf[types.StructType]
+    .asInstanceOf[StructType]
   }
 }
