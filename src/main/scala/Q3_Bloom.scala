@@ -26,6 +26,7 @@ class Q3_Bloom extends Q3 {
       logger.warn(s"Count interval with low confidence ($cntPartial). Waiting.")
       cntPartial.getFinalValue()
     } else { cntPartial.initialValue }
+    logger.info(s"Count interval: $interval")
     val count : Int = cntPartial.initialValue.mean.toInt
 
     // Create our bloom filter
