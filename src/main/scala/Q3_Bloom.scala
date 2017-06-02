@@ -1,5 +1,6 @@
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
+import org.apache.spark.util.sketch.BloomFilter
 import Main.{spark, logger, sc}
 
 class Q3_Bloom extends Q3 {
@@ -30,20 +31,16 @@ class Q3_Bloom extends Q3 {
     // Create our bloom filter
     val bits = bloomSizeInBits(elements=count, errorRate=0.05)
     logger.info(s"BloomFilter($count elements, $bits bits)")
-    val bloomAggregator = new BloomFilterAggregator(count, bits)
-    val bloomFilter : BloomFilter =
-      filteredOrders
-        .select($"o_orderkey")
-        .as[Int]
-        .select(bloomAggregator.toColumn)
-        .first()
+    val bloomFilter : BloomFilter = filteredOrders.stat.bloomFilter(
+        col=$"o_orderkey",
+        expectedNumItems=count,
+        numBits=bits)
 
     // Broadcast it to all node
     val broadcastedFilter = sc.broadcast(bloomFilter)
 
     // Filter lineitem using our bloom filter
-    val checkInFilter = udf((id: Int) => broadcastedFilter.value.contains(id))
-
+    val checkInFilter = udf((x:Long) => broadcastedFilter.value.mightContainLong(x))
 
     val lineitem = spark.read.table("lineitem")
 
@@ -52,19 +49,9 @@ class Q3_Bloom extends Q3 {
       logger.debug(s""" Total: ${lineitem.count()}""")
       logger.debug(s""" In Bloom Filter: ${lineitem.filter(checkInFilter($"l_orderkey")).count()}""")
 
-      val bloomHashes = udf((id: Int) =>
-        BloomFilter.hashes(
-          bloomFilter.numHashFunctions,
-          bloomFilter.bitset.size,
-          id
-        ).map(i => i.toString)
-        .mkString(" ")
-      )
-
       val lines = lineitem.select($"l_orderkey")
           .distinct()
           .withColumn("inFilter", checkInFilter($"l_orderkey"))
-          .withColumn("hashes", bloomHashes($"l_orderkey"))
           .show(numRows=100, truncate=false)
     }
 
