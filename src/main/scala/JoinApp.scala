@@ -14,6 +14,7 @@ object Main {
       .master("yarn")
       .appName("JoinApp " ++ args.mkString(" "))
       .config("spark.eventLog.enabled", "true")
+      .config("spark.driver.maxResultSize", "0")
       .getOrCreate()
 
     spark.conf.set("spark.driver.maxResultSize",
@@ -49,6 +50,10 @@ object Main {
   }
 
   def getMaxMemory(): Long =
-    JavaUtils.byteStringAsBytes(
-      spark.conf.get("spark.driver.maxResultSize", "1g"))
+    Seq("spark.driver.maxResultSize", "spark.driver.memory")
+      .flatMap(spark.conf.getOption)
+      .map(JavaUtils.byteStringAsBytes)
+      .filter(_ > 0)
+      .lift(0)
+      .getOrElse(1024*1024)
 }
