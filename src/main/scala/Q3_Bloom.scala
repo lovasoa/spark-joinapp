@@ -16,7 +16,7 @@ class Q3_Bloom extends Q3 {
   override def query() : DataFrame = {
     val filteredOrders =
       spark.read.table("orders")
-        .filter($"o_custkey" % 50 === 0 && $"o_orderdate" < "1995-03-15")
+        .filter($"o_custkey" % 5 === 0 && $"o_orderdate" < "1995-03-15")
         .select($"o_orderkey", $"o_orderdate")
     filteredOrders.cache()
 
