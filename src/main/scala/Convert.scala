@@ -2,7 +2,7 @@ import org.apache.spark.sql._
 import Main.{spark, logger}
 
 object Converter {
-  def parquetFileName(tableName:String) = s"SF150/$tableName.parquet"
+  def parquetFileName(tableName:String) = s"$tableName.parquet"
 
   def write(df: DataFrame, tableName: String) = {
     df.write
