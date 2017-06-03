@@ -27,7 +27,7 @@ class Q3_Bloom extends Q3 {
       cntPartial.getFinalValue()
     } else { cntPartial.initialValue }
     logger.info(s"Count interval: $interval")
-    val count : Int = cntPartial.initialValue.mean.toInt
+    val count : Int = interval.mean.toInt
 
     // Create our bloom filter
     val bits = bloomSizeInBits(elements=count, errorRate=0.05)
