@@ -12,7 +12,7 @@ class Q3_SQL extends Q3 {
         orders,
         lineitem
       WHERE
-        o_custkey % 5 = 0 -- selectivity: 1/5
+        o_custkey % 50 = 0 -- selectivity: 1/50
         AND l_orderkey = o_orderkey
         AND o_orderdate < '1995-03-15' -- selectivity: 0.48
         AND l_shipdate > '1995-03-15' -- selectivity: 0.54
