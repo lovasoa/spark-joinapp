@@ -1,6 +1,7 @@
 import org.apache.spark.sql._
 import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.log4j.{Logger, BasicConfigurator, Level}
+import org.apache.spark.network.util.JavaUtils
 
 object Main {
   var spark : SparkSession = null
@@ -14,6 +15,9 @@ object Main {
       .appName("JoinApp " ++ args.mkString(" "))
       .config("spark.eventLog.enabled", "true")
       .getOrCreate()
+
+    spark.conf.set("spark.driver.maxResultSize",
+      spark.conf.get("spark.driver.memory", "1g"))
 
     spark.sparkContext.setLogLevel("WARN")
     is_debug = args.contains("debug")
@@ -44,10 +48,7 @@ object Main {
     args.drop(1).foreach(converter.convert)
   }
 
-  def getMaxMemory(): Long = {
-    val conf = spark.sparkContext.getConf
-    val memoryFraction = conf.getDouble("spark.storage.memoryFraction", 0.6)
-    val safetyFraction = conf.getDouble("spark.storage.safetyFraction", 0.9)
-    (Runtime.getRuntime.maxMemory * memoryFraction * safetyFraction).toLong
-  }
+  def getMaxMemory(): Long =
+    JavaUtils.byteStringAsBytes(
+      spark.conf.get("spark.driver.maxResultSize", "1g"))
 }
