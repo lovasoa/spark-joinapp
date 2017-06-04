@@ -18,7 +18,10 @@ object Main {
       c.copy(query = true) ).text("execute the query")
 
     opt[Unit]('b', "bloom").action( (_, c) =>
-      c.copy(bloom = true) ).text("whether to use bloom-filtered joins")
+      c.copy(bloom = true) ).text("use a bloom-filtered join")
+
+    opt[Unit]("sql").action( (_, c) =>
+      c.copy(bloom = false) ).text("use a simple SparkSQL query")
 
     opt[Double]('e', "error-rate").action( (x, c) =>
       c.copy(errorRate = x) ).text("error rate to use in bloom filters")
