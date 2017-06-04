@@ -31,7 +31,7 @@ class Q3_Bloom extends Q3 {
 
     // Create our bloom filter
     val errorRate = Main.conf.errorRate
-    logger.info(s"BloomFilter($count elements, ${errorRate * 100}% error rate)")
+    logger.info(f"BloomFilter($count elements, ${errorRate * 100}%.2f %% error rate)")
     val bloomFilter : BloomFilter = filteredOrders.stat.bloomFilter(
         col = $"o_orderkey",
         expectedNumItems = count,
