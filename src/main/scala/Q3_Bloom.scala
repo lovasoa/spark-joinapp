@@ -37,6 +37,8 @@ class Q3_Bloom extends Q3 {
         expectedNumItems = count,
         fpp = errorRate)
 
+    logger.info(s"BloomFilter size: ${bloomFilter.bitSize} bits")
+
     // Broadcast it to all node
     val broadcastedFilter = sc.broadcast(bloomFilter)
 
