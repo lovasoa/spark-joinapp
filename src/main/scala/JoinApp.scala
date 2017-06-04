@@ -48,12 +48,4 @@ object Main {
     val converter = new Converter(args(0))
     args.drop(1).foreach(converter.convert)
   }
-
-  def getMaxMemory(): Long =
-    Seq("spark.driver.maxResultSize", "spark.driver.memory")
-      .flatMap(spark.conf.getOption)
-      .map(JavaUtils.byteStringAsBytes)
-      .filter(_ > 0)
-      .lift(0)
-      .getOrElse(1024*1024)
 }

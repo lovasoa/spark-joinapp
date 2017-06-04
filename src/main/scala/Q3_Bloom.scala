@@ -30,12 +30,12 @@ class Q3_Bloom extends Q3 {
     val count : Int = interval.mean.toInt
 
     // Create our bloom filter
-    val bits = bloomSizeInBits(elements=count, errorRate=0.05)
-    logger.info(s"BloomFilter($count elements, $bits bits)")
+    val errorRate = 0.2
+    logger.info(s"BloomFilter($count elements, ${errorRate * 100}% error rate)")
     val bloomFilter : BloomFilter = filteredOrders.stat.bloomFilter(
-        col=$"o_orderkey",
-        expectedNumItems=count,
-        numBits=bits)
+        col = $"o_orderkey",
+        expectedNumItems = count,
+        fpp = errorRate)
 
     // Broadcast it to all node
     val broadcastedFilter = sc.broadcast(bloomFilter)
@@ -60,21 +60,5 @@ class Q3_Bloom extends Q3 {
       .filter($"l_shipdate" > "1995-03-15" && checkInFilter($"l_orderkey"))
       .join(filteredOrders, $"l_orderkey" === $"o_orderkey")
       .select($"o_orderkey", $"l_extendedprice", $"o_orderdate")
-  }
-
-  def bloomSizeInBits(elements:Long, errorRate:Double) : Long = {
-    // Compute the desired size of the bloom filter
-    // Classic Bloom filters use 1.44 * log2(1/ϵ) bits of space per inserted key
-    val requiredBits = math.round(elements * 1.44 * math.log(1/errorRate)/math.log(2))
-    val maxMemoryFraction = 0.25 // Don’t use more memory than this percentage of total available memory
-    val maxSizeInBits = (Main.getMaxMemory * 8 * maxMemoryFraction).toLong
-    val minSizeInBits = 8 // Never create a filter smaller than one byte
-    if (requiredBits > maxSizeInBits) {
-      logger.warn(s"""
-        |Reached maximum memory size for the bloom filter." ++
-        |Wanted to use $requiredBits bits, using only $maxSizeInBits
-        |""".stripMargin.trim)
-    }
-    math.max(minSizeInBits, math.min(requiredBits, maxSizeInBits))
   }
 }
