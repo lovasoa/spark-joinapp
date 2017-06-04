@@ -27,7 +27,7 @@ abstract class Q3() {
     prepare()
     val result = query()
 
-    if (Main.is_debug) {
+    if (Main.conf.debug) {
       logger.info(s"query type: $queryType")
       spark.sql("""
         SELECT 'orders' AS table, COUNT(*) AS count FROM orders

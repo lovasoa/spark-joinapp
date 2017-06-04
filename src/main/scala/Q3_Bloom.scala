@@ -45,7 +45,7 @@ class Q3_Bloom extends Q3 {
 
     val lineitem = spark.read.table("lineitem")
 
-    if (Main.is_debug) {
+    if (Main.conf.debug) {
       logger.debug(s"""Testing bloom filter:""")
       logger.debug(s""" Total: ${lineitem.count()}""")
       logger.debug(s""" In Bloom Filter: ${lineitem.filter(checkInFilter($"l_orderkey")).count()}""")
