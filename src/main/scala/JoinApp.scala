@@ -24,7 +24,8 @@ object Main {
       c.copy(bloom = false) ).text("use a simple SparkSQL query")
 
     opt[Double]('e', "error-rate").action( (x, c) =>
-      c.copy(errorRate = x) ).text("error rate to use in bloom filters")
+      c.copy(query=true, bloom=true, errorRate = x)
+    ).text("error rate to use in bloom filters")
 
     opt[Unit]("debug").action( (_, c) =>
       c.copy(debug = true) ).text("print debug informations while doing the query")
