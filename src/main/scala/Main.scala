@@ -28,8 +28,6 @@ object Main {
     logger.setLevel(if (conf.debug) Level.DEBUG else Level.INFO)
     // Display the configuration
     spark.conf.getAll.foreach(x => println(s"${x._1}: ${x._2}"))
-
-    if (conf.convert) convert()
-    if (conf.query) query()
+    JoinApp.runAll(conf)
   }
 }

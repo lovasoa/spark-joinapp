@@ -1,6 +1,6 @@
 case class AppConfig(
   convert: Boolean = false,
-  query: Boolean = true,
+  query: Boolean = false,
   bloom: Boolean = false,
   errorRate: Double = 0.05,
   sourcePath: String = "",

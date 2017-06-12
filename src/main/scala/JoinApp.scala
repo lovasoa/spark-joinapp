@@ -1,47 +1,48 @@
-import org.apache.spark.sql._
-import org.apache.spark.{SparkContext, SparkConf}
-import org.apache.log4j.{Logger, BasicConfigurator, Level}
-import org.apache.spark.network.util.JavaUtils
-import scopt._
+import Main.{spark, logger}
 
-object Main {
-  var spark : SparkSession = null
-  def sc = spark.sparkContext
-  val logger = Logger.getLogger(Main.getClass)
-  var conf : AppConfig = AppConfig()
+abstract class JoinApp {
+  def run() : Unit
+  def isSelected() : Boolean
+  def runIfSelected = if (isSelected) run()
+}
 
-  def main(args: Array[String]) {
-    // Parse command-line
-    conf = AppConfig.parseOrDie(args)
-
-    spark = SparkSession.builder()
-      .master("yarn")
-      .appName("JoinApp " ++ args.mkString(" "))
-      .config("spark.eventLog.enabled", "true")
-      .config("spark.driver.maxResultSize", "0")
-      .getOrCreate()
-
-    spark.conf.set("spark.driver.maxResultSize",
-      spark.conf.get("spark.driver.memory", "1g"))
-
-    spark.sparkContext.setLogLevel("WARN")
-    logger.setLevel(if (conf.debug) Level.DEBUG else Level.INFO)
-    // Display the configuration
-    spark.conf.getAll.foreach(x => println(s"${x._1}: ${x._2}"))
-
-    if (conf.convert) convert()
-    if (conf.query) query()
+object JoinApp {
+  def runAll(conf: AppConfig) {
+    val actions = Seq[JoinApp](
+      new ConvertJoinApp(conf),
+      new SQLQueryJoinApp(conf, new Q3_SQL),
+      new BloomQueryJoinApp(conf, new Q3_Bloom)
+    )
+    actions.foreach(_.runIfSelected)
   }
+}
 
-  def query() {
+abstract class QueryJoinApp(conf: AppConfig)
+  extends JoinApp {
+  def query() : Q3
+  def isQueryType() : Boolean
+  override def run() {
     logger.info(s"QUERY bloom=${conf.bloom}")
-    val query = if (conf.bloom) new Q3_Bloom else new Q3_SQL
     query.run()
   }
+  override def isSelected = conf.query && isQueryType
+}
 
-  def convert() {
+class SQLQueryJoinApp(conf: AppConfig, q:Q3_SQL) extends QueryJoinApp(conf) {
+  override def isQueryType = !conf.bloom
+  override def query = q
+}
+
+class BloomQueryJoinApp(conf: AppConfig, q:Q3_Bloom) extends QueryJoinApp(conf) {
+  override def isQueryType = conf.bloom
+  override def query = q
+}
+
+class ConvertJoinApp(conf: AppConfig) extends JoinApp {
+  override def run() {
     spark.conf.set("spark.eventLog.enabled", "false")
     val converter = new Converter(conf.sourcePath)
     conf.tables.foreach(converter.convert)
   }
+  override def isSelected = conf.convert
 }
