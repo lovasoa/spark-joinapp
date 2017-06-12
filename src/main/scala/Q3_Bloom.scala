@@ -1,5 +1,6 @@
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.expressions._
 import org.apache.spark.util.sketch.BloomFilter
 import Main.{spark, logger, sc}
 
@@ -47,20 +48,22 @@ class Q3_Bloom extends Q3 {
 
     val lineitem = spark.read.table("lineitem")
 
-    if (Main.conf.debug) {
-      logger.debug(s"""Testing bloom filter:""")
-      logger.debug(s""" Total: ${lineitem.count()}""")
-      logger.debug(s""" In Bloom Filter: ${lineitem.filter(checkInFilter($"l_orderkey")).count()}""")
-
-      val lines = lineitem.select($"l_orderkey")
-          .distinct()
-          .withColumn("inFilter", checkInFilter($"l_orderkey"))
-          .show(numRows=100, truncate=false)
-    }
+    if (Main.conf.debug) debug(lineitem, checkInFilter)
 
     spark.read.table("lineitem")
       .filter($"l_shipdate" > "1995-03-15" && checkInFilter($"l_orderkey"))
       .join(filteredOrders, $"l_orderkey" === $"o_orderkey")
       .select($"o_orderkey", $"l_extendedprice", $"o_orderdate")
+  }
+
+  def debug(lineitem:DataFrame, checkInFilter:UserDefinedFunction) = {
+    logger.debug(s"""Testing bloom filter:""")
+    logger.debug(s""" Total: ${lineitem.count()}""")
+    logger.debug(s""" In Bloom Filter: ${lineitem.filter(checkInFilter($"l_orderkey")).count()}""")
+
+    val lines = lineitem.select($"l_orderkey")
+        .distinct()
+        .withColumn("inFilter", checkInFilter($"l_orderkey"))
+        .show(numRows=100, truncate=false)
   }
 }
