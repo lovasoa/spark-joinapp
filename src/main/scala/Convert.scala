@@ -11,7 +11,8 @@ object Converter {
   }
 }
 
-class Converter(folder: String) {
+class Converter(conf: AppConfig) {
+  def folder : String = conf.sourcePath
   def tblFileName(tableName:String) = s"$folder/$tableName*.tbl*"
 
   def readFile(table: Table): DataFrame = {

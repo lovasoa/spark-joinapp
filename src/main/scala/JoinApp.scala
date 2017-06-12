@@ -9,9 +9,9 @@ abstract class JoinApp {
 object JoinApp {
   def runAll(conf: AppConfig) {
     val actions = Seq[JoinApp](
-      new ConvertJoinApp(conf),
-      new SQLQueryJoinApp(conf, new Q3_SQL),
-      new BloomQueryJoinApp(conf, new Q3_Bloom)
+      new ConvertJoinApp(conf, new Converter(conf)),
+      new SQLQueryJoinApp(conf, new Q3_SQL()),
+      new BloomQueryJoinApp(conf, new Q3_Bloom())
     )
     actions.foreach(_.runIfSelected)
   }
@@ -38,10 +38,9 @@ class BloomQueryJoinApp(conf: AppConfig, q:Q3_Bloom) extends QueryJoinApp(conf) 
   override def query = q
 }
 
-class ConvertJoinApp(conf: AppConfig) extends JoinApp {
+class ConvertJoinApp(conf: AppConfig, converter: Converter) extends JoinApp {
   override def run() {
     spark.conf.set("spark.eventLog.enabled", "false")
-    val converter = new Converter(conf.sourcePath)
     conf.tables.foreach(converter.convert)
   }
   override def isSelected = conf.convert
