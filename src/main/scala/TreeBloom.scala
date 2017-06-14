@@ -8,7 +8,7 @@ object TreeBloom {
   // See https://issues.apache.org/jira/browse/SPARK-21039
   def bloomFilter(singleCol: DataFrame, expectedNumItems:Long, fpp:Double): BloomFilter = {
     val zero = BloomFilter.create(expectedNumItems, fpp)
-    sc.setJobGroup("bloomFilter", "Creation of a bloom filter")
+    sc.setJobGroup("bloomFilter", "Bloom filter creation")
     singleCol.queryExecution.toRdd.treeAggregate(zero)(
       (filter: BloomFilter, row: InternalRow) => {
         filter.putLong(row.getInt(0))
