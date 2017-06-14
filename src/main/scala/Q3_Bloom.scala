@@ -22,7 +22,7 @@ class Q3_Bloom extends Q3 {
     filteredOrders.cache()
 
     // Getting an fast approximation of the number of distinct order keys
-    var cntPartial = filteredOrders.rdd.countApprox(timeout=3000, confidence=0)
+    var cntPartial = filteredOrders.rdd.countApprox(timeout=4000, confidence=0)
     val interval = if (cntPartial.initialValue.confidence < 0.75) {
       logger.warn(s"Count interval with low confidence ($cntPartial). Waiting.")
       cntPartial.getFinalValue()
