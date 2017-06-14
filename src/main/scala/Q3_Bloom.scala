@@ -22,6 +22,7 @@ class Q3_Bloom extends Q3 {
     filteredOrders.cache()
 
     // Getting an fast approximation of the number of distinct order keys
+    sc.setJobGroup("countApprox", "Estimationg the number of elements in the filtered small table")
     var cntPartial = filteredOrders.rdd.countApprox(timeout=4000, confidence=0)
     val interval = if (cntPartial.initialValue.confidence < 0.75) {
       logger.warn(s"Count interval with low confidence ($cntPartial). Waiting.")
@@ -50,6 +51,7 @@ class Q3_Bloom extends Q3 {
 
     if (Main.conf.debug) debug(lineitem, checkInFilter)
 
+    sc.setJobGroup("join", "Filtering the large table and computing the final join")
     spark.read.table("lineitem")
       .filter($"l_shipdate" > "1995-03-15" && checkInFilter($"l_orderkey"))
       .join(filteredOrders, $"l_orderkey" === $"o_orderkey")
