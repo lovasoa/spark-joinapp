@@ -25,7 +25,9 @@ class Q3_Bloom extends Q3 {
     sc.setJobGroup("countApprox", "Estimating the number of elements in the filtered small table")
     var cntPartial = filteredOrders.rdd.countApprox(timeout=4000, confidence=0)
     val initialValue = cntPartial.initialValue
-    val interval = if (initialValue.confidence < 0.01) {
+    val interval = if (initialValue.low < 0.1 * initialValue.high) {
+      // If we have an order of magnitude of difference between low and high
+      // then wait for better results.
       logger.warn(s"""Count interval with low confidence
         ($initialValue, confidence=${initialValue.confidence}).
         WAITING FOR A BETTER CONFIDENCE""")
