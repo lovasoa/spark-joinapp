@@ -35,7 +35,8 @@ class Q3_Bloom extends Q3 {
     } else { cntPartial.initialValue }
     logger.info(s"Count interval: $interval")
     val count : Int = interval.mean.toInt
-    // sc.cancelJobGroup("countApprox")
+    // Cancelling the count job as it is not needed anymore
+    sc.cancelJobGroup("countApprox")
 
     // Create our bloom filter
     val errorRate = Main.conf.errorRate
