@@ -23,24 +23,22 @@ class Q3_Bloom extends Q3 {
 
     // Getting an fast approximation of the number of distinct order keys
     sc.setJobGroup("countApprox", "Estimating the number of elements in the filtered small table")
-    var cntPartial = filteredOrders.rdd.countApprox(timeout=1000, confidence=0.1)
-    var (low,high,isFinal) = (0, Double.MaxValue,false)
-    while (low < 0.1 * high && !cntPartial.isInitialValueFinal) {
-      cntPartial.synchronized {
-        // If we have an order of magnitude of difference between low and high
-        // then wait for better results.
-        logger.warn(s"Temporary count interval ($cntPartial).")
-        var (low, high) = (cntPartial.initialValue.low, cntPartial.initialValue.high)
-        isFinal = cntPartial.isInitialValueFinal
-        println((low, high, isFinal))
-        cntPartial.wait()
+    var countedParts = 0L
+    var countedElements = 0L
+    var allParts = filteredOrders.rdd.getNumPartitions.toLong
+    sc.runJob(
+      filteredOrders.rdd,
+      (it:Iterator[_]) => it.size,
+      (_, partCount:Int) => {
+        countedParts += 1
+        countedElements += partCount.toLong
+        if (countedParts > 0.1 * allParts) {
+          sc.cancelJobGroup("countApprox")
+        }
       }
-    }
-    val interval = cntPartial.initialValue
-    logger.info(s"Count interval: $interval")
-    val count : Int = interval.mean.toInt
-    // Cancelling the count job as it is not needed anymore
-    sc.cancelJobGroup("countApprox")
+    )
+    val count : Int = (countedElements * allParts / countedParts).toInt
+    logger.info(s"Counted $countedElements in $countedParts ($allParts total). Estimating $count elements")
 
     // Create our bloom filter
     val errorRate = Main.conf.errorRate
