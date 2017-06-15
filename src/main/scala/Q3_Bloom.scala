@@ -70,7 +70,7 @@ class Q3_Bloom extends Q3 {
 
   def makeBloomFilter(filteredOrders:DataFrame, count:Int) : Future[BloomFilter] = {
     // Create our bloom filter
-    future {
+    Future {
       val errorRate = Main.conf.errorRate
       logger.info(f"BloomFilter($count elements, ${errorRate * 100}%.2f %% error rate)")
       TreeBloom.bloomFilter(
