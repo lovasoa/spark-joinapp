@@ -4,6 +4,9 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.expressions._
 import org.apache.spark.util.sketch.BloomFilter
 import Main.{spark, logger, sc}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.concurrent._
 
 class Q3_Bloom extends Q3 {
   import cspark.implicits._
@@ -22,12 +25,12 @@ class Q3_Bloom extends Q3 {
         .select($"o_orderkey", $"o_orderdate")
     filteredOrders.cache()
 
-    var bloomFilter : BloomFilter = null
+    var futureBloomFilter : Future[BloomFilter] = null
     // Getting an fast approximation of the number of distinct order keys
     countAsync(filteredOrders.rdd, (n:Int) => {
-      bloomFilter = makeBloomFilter(filteredOrders, n)
+      futureBloomFilter = makeBloomFilter(filteredOrders, n)
     })
-
+    val bloomFilter = Await.result(futureBloomFilter, Duration.Inf)
     // Broadcast it to all node
     val broadcastedFilter = sc.broadcast(bloomFilter)
     // Filter lineitem using our bloom filter
@@ -65,14 +68,16 @@ class Q3_Bloom extends Q3 {
     )
   }
 
-  def makeBloomFilter(filteredOrders:DataFrame, count:Int) : BloomFilter = {
+  def makeBloomFilter(filteredOrders:DataFrame, count:Int) : Future[BloomFilter] = {
     // Create our bloom filter
-    val errorRate = Main.conf.errorRate
-    logger.info(f"BloomFilter($count elements, ${errorRate * 100}%.2f %% error rate)")
-    TreeBloom.bloomFilter(
-        singleCol = filteredOrders.select($"o_orderkey"),
-        expectedNumItems = count,
-        fpp = errorRate)
+    future {
+      val errorRate = Main.conf.errorRate
+      logger.info(f"BloomFilter($count elements, ${errorRate * 100}%.2f %% error rate)")
+      TreeBloom.bloomFilter(
+          singleCol = filteredOrders.select($"o_orderkey"),
+          expectedNumItems = count,
+          fpp = errorRate)
+    }
   }
 
   def debug(lineitem:DataFrame, checkInFilter:UserDefinedFunction) = {

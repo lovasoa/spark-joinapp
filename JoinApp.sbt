@@ -13,3 +13,4 @@ libraryDependencies ++= Seq(
 )
 
 assemblyOutputPath in assembly := file("target/joinapp.jar")
+scalacOptions ++= Seq("-deprecation", "-feature")
