@@ -56,7 +56,9 @@ class Q3_Bloom extends Q3 {
         countedElements += partCount.toLong
         if (countedParts > 0.1 * allParts) {
           val count : Int = (countedElements * allParts / countedParts).toInt
-          logger.info(s"Counted $countedElements in $countedParts ($allParts total). Estimating $count elements")
+          logger.info(s"""Counted $countedElements in $countedParts partitions
+            ($allParts partitions in total).
+            Estimating $count elements""")
           callback(count)
         }
       }
