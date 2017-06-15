@@ -24,13 +24,15 @@ class Q3_Bloom extends Q3 {
     // Getting an fast approximation of the number of distinct order keys
     sc.setJobGroup("countApprox", "Estimating the number of elements in the filtered small table")
     var cntPartial = filteredOrders.rdd.countApprox(timeout=1000, confidence=0.1)
-    var loop = true
-    while (cntPartial.initialValue.low < 0.1 * cntPartial.initialValue.high
-          && !cntPartial.isInitialValueFinal) {
+    var (low,high,isFinal) = (0, Double.MaxValue,false)
+    while (low < 0.1 * high && !cntPartial.isInitialValueFinal) {
       cntPartial.synchronized {
         // If we have an order of magnitude of difference between low and high
         // then wait for better results.
         logger.warn(s"Temporary count interval ($cntPartial).")
+        var (low, high) = (cntPartial.initialValue.low, cntPartial.initialValue.high)
+        isFinal = cntPartial.isInitialValueFinal
+        println((low, high, isFinal))
         cntPartial.wait()
       }
     }
