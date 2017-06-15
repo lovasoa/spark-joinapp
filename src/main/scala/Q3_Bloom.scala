@@ -1,3 +1,4 @@
+import org.apache.spark.rdd._
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.expressions._
@@ -21,41 +22,16 @@ class Q3_Bloom extends Q3 {
         .select($"o_orderkey", $"o_orderdate")
     filteredOrders.cache()
 
+    var bloomFilter : BloomFilter = null
     // Getting an fast approximation of the number of distinct order keys
-    sc.setJobGroup("countApprox", "Estimating the number of elements in the filtered small table")
-    var countedParts = 0L
-    var countedElements = 0L
-    var allParts = filteredOrders.rdd.getNumPartitions.toLong
-    sc.runJob(
-      filteredOrders.rdd,
-      (it:Iterator[_]) => it.size,
-      (_, partCount:Int) => {
-        countedParts += 1
-        countedElements += partCount.toLong
-        if (countedParts > 0.1 * allParts) {
-          sc.cancelJobGroup("countApprox")
-        }
-      }
-    )
-    val count : Int = (countedElements * allParts / countedParts).toInt
-    logger.info(s"Counted $countedElements in $countedParts ($allParts total). Estimating $count elements")
-
-    // Create our bloom filter
-    val errorRate = Main.conf.errorRate
-    logger.info(f"BloomFilter($count elements, ${errorRate * 100}%.2f %% error rate)")
-    val bloomFilter : BloomFilter = TreeBloom.bloomFilter(
-        singleCol = filteredOrders.select($"o_orderkey"),
-        expectedNumItems = count,
-        fpp = errorRate)
-
-    logger.info(s"BloomFilter size: ${bloomFilter.bitSize} bits")
+    countAsync(filteredOrders.rdd, (n:Int) => {
+      bloomFilter = makeBloomFilter(filteredOrders, n)
+    })
 
     // Broadcast it to all node
     val broadcastedFilter = sc.broadcast(bloomFilter)
-
     // Filter lineitem using our bloom filter
     val checkInFilter = udf((x:Long) => broadcastedFilter.value.mightContainLong(x))
-
     val lineitem = spark.read.table("lineitem")
 
     if (Main.conf.debug) debug(lineitem, checkInFilter)
@@ -65,6 +41,36 @@ class Q3_Bloom extends Q3 {
       .filter($"l_shipdate" > "1995-03-15" && checkInFilter($"l_orderkey"))
       .join(filteredOrders, $"l_orderkey" === $"o_orderkey")
       .select($"o_orderkey", $"l_extendedprice", $"o_orderdate")
+  }
+
+  def countAsync(rdd:RDD[_], callback:(Int=>Unit)) : Unit = {
+    sc.setJobGroup("countApprox", "Estimating the number of elements in the filtered small table")
+    var countedParts = 0L
+    var countedElements = 0L
+    var allParts = rdd.getNumPartitions.toLong
+    sc.runJob(
+      rdd,
+      (it:Iterator[_]) => it.size,
+      (_, partCount:Int) => {
+        countedParts += 1
+        countedElements += partCount.toLong
+        if (countedParts > 0.1 * allParts) {
+          val count : Int = (countedElements * allParts / countedParts).toInt
+          logger.info(s"Counted $countedElements in $countedParts ($allParts total). Estimating $count elements")
+          callback(count)
+        }
+      }
+    )
+  }
+
+  def makeBloomFilter(filteredOrders:DataFrame, count:Int) : BloomFilter = {
+    // Create our bloom filter
+    val errorRate = Main.conf.errorRate
+    logger.info(f"BloomFilter($count elements, ${errorRate * 100}%.2f %% error rate)")
+    TreeBloom.bloomFilter(
+        singleCol = filteredOrders.select($"o_orderkey"),
+        expectedNumItems = count,
+        fpp = errorRate)
   }
 
   def debug(lineitem:DataFrame, checkInFilter:UserDefinedFunction) = {
