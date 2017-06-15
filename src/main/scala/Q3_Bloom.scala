@@ -27,8 +27,10 @@ class Q3_Bloom extends Q3 {
 
     var futureBloomFilter : Future[BloomFilter] = null
     // Getting an fast approximation of the number of distinct order keys
-    countAsync(filteredOrders.rdd, (n:Int) => {
-      futureBloomFilter = makeBloomFilter(filteredOrders, n)
+    countAsync(filteredOrders.rdd, (precision:Double, count:Int) => {
+      if (futureBloomFilter == null && precision >= 0.1) {
+        futureBloomFilter = makeBloomFilter(filteredOrders, count)
+      }
     })
     val bloomFilter = Await.result(futureBloomFilter, Duration.Inf)
     // Broadcast it to all node
@@ -46,7 +48,7 @@ class Q3_Bloom extends Q3 {
       .select($"o_orderkey", $"l_extendedprice", $"o_orderdate")
   }
 
-  def countAsync(rdd:RDD[_], callback:(Int=>Unit)) : Unit = {
+  def countAsync(rdd:RDD[_], update:((Double, Int)=>Unit)) : Unit = {
     sc.setJobGroup("countApprox", "Estimating the number of elements in the filtered small table")
     var countedParts = 0L
     var countedElements = 0L
@@ -57,13 +59,8 @@ class Q3_Bloom extends Q3 {
       (_, partCount:Int) => {
         countedParts += 1
         countedElements += partCount.toLong
-        if (countedParts > 0.1 * allParts) {
-          val count : Int = (countedElements * allParts / countedParts).toInt
-          logger.info(s"""Counted $countedElements in $countedParts partitions
-            ($allParts partitions in total).
-            Estimating $count elements""")
-          callback(count)
-        }
+        val count : Int = (countedElements * allParts / countedParts).toInt
+        update(countedParts.toDouble/allParts, count)
       }
     )
   }
