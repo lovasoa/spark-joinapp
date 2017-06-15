@@ -24,16 +24,17 @@ class Q3_Bloom extends Q3 {
     // Getting an fast approximation of the number of distinct order keys
     sc.setJobGroup("countApprox", "Estimating the number of elements in the filtered small table")
     var cntPartial = filteredOrders.rdd.countApprox(timeout=1000, confidence=0.1)
-    cntPartial.initialValue.synchronized {
-      while (cntPartial.initialValue.low < 0.1 * cntPartial.initialValue.high
-            && !cntPartial.isInitialValueFinal) {
-        // If we have an order of magnitude of difference between low and high
-        // then wait for better results.
-        logger.warn(s"""Count interval with low confidence ($cntPartial).
-          WAITING 1s for a better confidence""")
-        Thread.sleep(1000)
+    var loop = true
+    do {
+      cntPartial.synchronized {
+        val (low,high) = (cntPartial.initialValue.low, cntPartial.initialValue.high)
+        loop = (low < 0.1 * high) || cntPartial.isInitialValueFinal
       }
-    }
+      // If we have an order of magnitude of difference between low and high
+      // then wait for better results.
+      logger.warn(s"Temporary count interval ($cntPartial).")
+      Thread.sleep(1000)
+    } while (loop)
     val interval = cntPartial.initialValue
     logger.info(s"Count interval: $interval")
     val count : Int = interval.mean.toInt
