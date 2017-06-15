@@ -23,12 +23,13 @@ class Q3_Bloom extends Q3 {
 
     // Getting an fast approximation of the number of distinct order keys
     sc.setJobGroup("countApprox", "Estimating the number of elements in the filtered small table")
-    var cntPartial = filteredOrders.rdd.countApprox(timeout=1000, confidence=0.1)
+    var cntPartial = filteredOrders.rdd.countApprox(timeout=3000, confidence=0.1)
     var loop = true
     do {
       cntPartial.synchronized {
-        val (low,high) = (cntPartial.initialValue.low, cntPartial.initialValue.high)
-        loop = (low < 0.1 * high) || cntPartial.isInitialValueFinal
+        val value = cntPartial.initialValue
+        val (low,high) = (value.low, value.high)
+        loop = (low < 0.1 * high) && !cntPartial.isInitialValueFinal
       }
       // If we have an order of magnitude of difference between low and high
       // then wait for better results.
