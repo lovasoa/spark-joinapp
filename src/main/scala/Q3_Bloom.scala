@@ -34,7 +34,7 @@ class Q3_Bloom extends Q3 {
       // If we have an order of magnitude of difference between low and high
       // then wait for better results.
       logger.warn(s"Temporary count interval ($cntPartial).")
-      Thread.sleep(1000)
+      cntPartial.wait()
     } while (loop)
     val interval = cntPartial.initialValue
     logger.info(s"Count interval: $interval")
